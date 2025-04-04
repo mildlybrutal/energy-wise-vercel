@@ -58,7 +58,7 @@ function App() {
 
         try {
             const response = await axios.post(
-                "http://localhost:5000/suggestions",
+                "http://energy-wise-vercel-production.up.railway.app/suggestions",
                 {
                     unitsUsed: Number(unitsUsed),
                     perUnitCost: Number(perUnitCost),
