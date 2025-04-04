@@ -14,7 +14,7 @@ function App() {
     useEffect(() => {
         const checkServerStatus = async () => {
             try {
-                await axios.get("http://localhost:5000/health");
+                await axios.get("http://energy-wise-vercel-production.up.railway.app/health");
                 setServerStatus("online");
             } catch (err) {
                 setServerStatus("offline");
