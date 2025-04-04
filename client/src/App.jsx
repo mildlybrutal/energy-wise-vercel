@@ -24,18 +24,37 @@ function App() {
         checkServerStatus();
     }, []);
 
-    const parseSuggestions = (text) => {
-        const lines = text.split(/\n/).filter((line) => line.trim() !== "");
+    const parseSuggestions = (suggestionsData) => {
+        // Handle both string and array responses from the server
+        if (typeof suggestionsData === "string") {
+            // Split by newlines and clean up each tip
+            return suggestionsData
+                .split(/\n/)
+                .filter((line) => line.trim() !== "")
+                .map((line) => {
+                    // Remove numbering (1., 2., etc.) if present
+                    return line.trim().replace(/^\d+\.\s*/, "");
+                });
+        } else if (Array.isArray(suggestionsData)) {
+            // Already an array, just make sure items are clean strings
+            return suggestionsData
+                .map((tip) =>
+                    typeof tip === "string"
+                        ? tip.trim().replace(/^\d+\.\s*/, "")
+                        : ""
+                )
+                .filter((tip) => tip !== "");
+        }
 
-        return lines.map(
-            (line) => line.trim().replace(/^\d+\.\s*/, "")
-        );
+        // Fallback to empty array if we can't parse suggestions
+        return [];
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuggestions([]);
 
         try {
             const response = await axios.post(
@@ -47,24 +66,26 @@ function App() {
                 }
             );
 
-            if (typeof response.data.suggestions === "string") {
+            // Handle the response data safely
+            if (response.data && response.data.suggestions) {
                 const parsedSuggestions = parseSuggestions(
                     response.data.suggestions
                 );
-                setSuggestions(parsedSuggestions);
-            } else if (
-                response.data.suggestions &&
-                Array.isArray(response.data.suggestions)
-            ) {
-                setSuggestions(response.data.suggestions);
+
+                if (parsedSuggestions.length > 0) {
+                    setSuggestions(parsedSuggestions);
+                } else {
+                    setError("No valid suggestions received from server.");
+                }
             } else {
-                setError("Invalid response from the server.");
-                setSuggestions([]);
+                setError("Invalid response format from the server.");
             }
         } catch (err) {
             console.error("Error:", err);
             setError(
-                err.response?.data?.error || err.message || "An error occurred"
+                err.response?.data?.error ||
+                    err.message ||
+                    "An error occurred while fetching suggestions"
             );
         } finally {
             setLoading(false);
@@ -222,19 +243,27 @@ function App() {
                         <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4">
                             Energy Saving Suggestions
                         </h2>
-                        <ul className="space-y-3">
+                        <ul className="space-y-3 list-none">
                             {suggestions.map((suggestion, index) => (
                                 <li
                                     key={index}
-                                    className="p-3 bg-slate-700/30 rounded-lg border border-slate-600 text-gray-200 text-sm flex items-start"
+                                    className="p-3 bg-slate-700/30 rounded-lg border border-slate-600 text-sm flex items-start"
                                 >
-                                    <span className="text-teal-400 mr-2 text-lg">
-                                        •
+                                    <span className="text-teal-400 font-semibold mr-2 mt-0.5 flex-shrink-0">
+                                        {index + 1}.
                                     </span>
                                     <span>{suggestion}</span>
                                 </li>
                             ))}
                         </ul>
+
+                        <div className="mt-6 pt-4 border-t border-slate-600/50">
+                            <p className="text-xs text-gray-400 italic">
+                                Based on your consumption of {unitsUsed} units
+                                at {perUnitCost} per unit (total bill: $
+                                {totalBill})
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>
