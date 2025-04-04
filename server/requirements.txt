@@ -1,4 +1,4 @@
 Flask
 Flask-CORS
 transformers
-torch
+gunicorn
