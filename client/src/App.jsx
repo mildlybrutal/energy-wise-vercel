@@ -10,11 +10,12 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [serverStatus, setServerStatus] = useState("checking");
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
         const checkServerStatus = async () => {
             try {
-                await axios.get("http://energy-wise-vercel-production.up.railway.app/health");
+                await axios.get(`${BACKEND_URL}/health`);
                 setServerStatus("online");
             } catch (err) {
                 setServerStatus("offline");
@@ -57,14 +58,11 @@ function App() {
         setSuggestions([]);
 
         try {
-            const response = await axios.post(
-                "http://energy-wise-vercel-production.up.railway.app/suggestions",
-                {
-                    unitsUsed: Number(unitsUsed),
-                    perUnitCost: Number(perUnitCost),
-                    totalBill: Number(totalBill),
-                }
-            );
+            const response = await axios.post(`${BACKEND_URL}/suggestions`, {
+                unitsUsed: Number(unitsUsed),
+                perUnitCost: Number(perUnitCost),
+                totalBill: Number(totalBill),
+            });
 
             // Handle the response data safely
             if (response.data && response.data.suggestions) {
