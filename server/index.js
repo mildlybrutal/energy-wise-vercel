@@ -8,6 +8,10 @@ const port = 5000;
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.status(200).json({ message: "Server is running" });
+});
+
 app.post("/suggestions", async (req, res) => {
     const { unitsUsed, perUnitCost, totalBill } = req.body;
     console.log("Received request:", { unitsUsed, perUnitCost, totalBill });
